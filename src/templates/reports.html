@@ -1,67 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reports</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0; 
-            padding: 0;
-            background: #f9f9f9;
-        }
-        header {
-            background: #fff;
+            margin: 0;
             padding: 20px;
-            text-align: center;
-            border-bottom: 1px solid #ddd;
         }
-        header img {
-            max-width: 150px;
-        }
-        main {
-            max-width: 800px;
-            margin: 20px auto;
-            background: #fff;
-            padding: 20px;
-            border: 1px solid #ddd;
-        }
-        footer {
-            text-align: center;
-            padding: 10px;
-            color: #666;
-            font-size: 0.9em;
-        }
-        button {
-            margin-top: 10px;
+        .report-button {
+            display: inline-block;
+            margin: 10px;
             padding: 10px 20px;
+            background-color: #cc0000;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
         }
-        a {
-            color: #333;
+        .report-button:hover {
+            background-color: #990000;
         }
     </style>
 </head>
 <body>
-    <header>
-        <img src="https://www.logodesign.org/wp-content/uploads/2023/08/current-target-logo.png" alt="Target Logo">
-    </header>
-    <main>
-        <h1>Generate Reports</h1>
-        <form action="/generate_report" method="GET">
-            <label>Report Type:
-                <select name="report_type">
-                    <option value="sales_by_department">Sales by Department</option>
-                    <option value="inventory">Inventory Levels</option>
-                </select>
-            </label>
-            <button type="submit">Generate</button>
-        </form>
-
-        <p><a href="/employee_dashboard">Back to Employee Dashboard</a></p>
-    </main>
-    <footer>
-        &copy; 2024 Target Store Management
-    </footer>
+    <h1>Generate Reports</h1>
+    
+    <div>
+        <a href="{{ url_for('generate_report', report_type='sales_by_department') }}" class="report-button">
+            Sales by Department Report
+        </a>
+    </div>
+    
+    <div>
+        <a href="{{ url_for('generate_report', report_type='popular_products') }}" class="report-button">
+            Popular Products Report
+        </a>
+    </div>
+    
+    <div>
+        <a href="{{ url_for('generate_report', report_type='customer_orders') }}" class="report-button">
+            Customer Orders Report
+        </a>
+    </div>
 </body>
 </html>
