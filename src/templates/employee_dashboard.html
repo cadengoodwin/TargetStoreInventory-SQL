@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Target Store</title>
+    <title>Employee Dashboard</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -27,16 +27,20 @@
             padding: 20px;
             border: 1px solid #ddd;
         }
+        nav a {
+            margin: 0 20px;
+            color: #00008B; /* Dark Blue */
+            text-decoration: underline;
+            font-size: 1.2em; /* Bigger text */
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
         footer {
             text-align: center;
             padding: 10px;
             color: #666;
             font-size: 0.9em;
-        }
-        button {
-            margin: 0 10px;
-            padding: 10px 20px;
-            cursor: pointer;
         }
     </style>
 </head>
@@ -45,12 +49,13 @@
         <img src="https://www.logodesign.org/wp-content/uploads/2023/08/current-target-logo.png" alt="Target Logo">
     </header>
     <main>
-        <h1>Welcome to Target Store</h1>
-        <p>Please select your role:</p>
-        <form action="/select_role" method="GET">
-            <button type="submit" name="role" value="customer">I am a Customer</button>
-            <button type="submit" name="role" value="employee">I am an Employee</button>
-        </form>
+        <h1>Employee Dashboard</h1>
+        <nav>
+            <a href="/manage_products">Manage Products</a>
+            <a href="/reports">Generate Reports</a>
+            <a href="/">Log Out</a>
+        </nav>
+        <p>Use these tools to add, update, or soft-delete products, and to generate reports.</p>
     </main>
     <footer>
         &copy; 2024 Target Store Management
