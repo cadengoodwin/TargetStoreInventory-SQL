@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
+from functools import wraps
 import mysql.connector
 from mysql.connector import Error
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Required for flash messages
@@ -9,8 +10,8 @@ app.secret_key = 'your_secret_key_here'  # Required for flash messages
 # Database connection configuration
 DB_CONFIG = {
     'host': 'localhost',
-    'user': 'your_username',
-    'password': 'your_password',
+    'user': 'root',
+    'password': 'CPSC408!',
     'database': 'target_store'
 }
 
@@ -21,6 +22,15 @@ def get_db_connection():
     except Error as e:
         print(f"Error connecting to database: {e}")
         return None
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please log in first')
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/')
 def index():
@@ -53,13 +63,20 @@ def employee_login():
         conn.close()
         
         if employee and check_password_hash(employee['password_hash'], password):
+            session['user_id'] = employee['employee_id']
+            session['user_type'] = 'employee'
+            session['role'] = employee['role']
             return redirect(url_for('employee_dashboard'))
         
-    flash('Invalid credentials')
+    flash('Invalid email or password', 'error')
     return redirect(url_for('employee_home'))
 
 @app.route('/employee_dashboard')
+@login_required
 def employee_dashboard():
+    if session.get('user_type') != 'employee':
+        flash('Access denied')
+        return redirect(url_for('index'))
     return render_template('employee_dashboard.html')
 
 @app.route('/manage_products', methods=['GET', 'POST'])
@@ -239,6 +256,138 @@ def generate_report():
     conn.close()
     
     return render_template('report_results.html', report_type=report_type, data=report_data)
+
+@app.route('/customer_home')
+def customer_home():
+    return render_template('customer_home.html')
+
+@app.route('/customer_register', methods=['GET', 'POST'])
+def customer_register():
+    if request.method == 'POST':
+        # Get form data
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+
+        # Validate passwords match
+        if password != confirm_password:
+            flash('Passwords do not match')
+            return redirect(url_for('customer_register'))
+
+        # Connect to database
+        conn = get_db_connection()
+        if conn:
+            cursor = conn.cursor(dictionary=True)
+            
+            # Check if email already exists
+            cursor.execute("SELECT * FROM Customer WHERE email = %s", (email,))
+            if cursor.fetchone():
+                flash('Email already registered')
+                cursor.close()
+                conn.close()
+                return redirect(url_for('customer_register'))
+
+            # Create new customer
+            try:
+                cursor.execute("""
+                    INSERT INTO Customer (first_name, last_name, email, password_hash)
+                    VALUES (%s, %s, %s, %s)
+                """, (first_name, last_name, email, generate_password_hash(password)))
+                conn.commit()
+                flash('Registration successful! Please login.')
+                return redirect(url_for('customer_home'))
+            except Error as e:
+                flash(f'An error occurred: {str(e)}')
+            finally:
+                cursor.close()
+                conn.close()
+        else:
+            flash('Database connection error')
+        
+        return redirect(url_for('customer_register'))
+
+    # GET request - show registration form
+    return render_template('customer_register.html')
+
+@app.route('/customer_login', methods=['POST'])
+def customer_login():
+    email = request.form.get('email')
+    password = request.form.get('password')
+    
+    conn = get_db_connection()
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM Customer WHERE email = %s", (email,))
+        customer = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        if customer and check_password_hash(customer['password_hash'], password):
+            session['user_id'] = customer['customer_id']
+            session['user_type'] = 'customer'
+            return redirect(url_for('products'))
+        
+    flash('Invalid email or password', 'error')
+    return redirect(url_for('customer_home'))
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('You have been logged out')
+    return redirect(url_for('index'))
+
+@app.route('/employee_register', methods=['GET', 'POST'])
+def employee_register():
+    if request.method == 'POST':
+        # Get form data
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        role = request.form.get('role')
+
+        # Validate passwords match
+        if password != confirm_password:
+            flash('Passwords do not match')
+            return redirect(url_for('employee_register'))
+
+        # Connect to database
+        conn = get_db_connection()
+        if conn:
+            cursor = conn.cursor(dictionary=True)
+            
+            # Check if email already exists
+            cursor.execute("SELECT * FROM Employee WHERE email = %s", (email,))
+            if cursor.fetchone():
+                flash('Email already registered')
+                cursor.close()
+                conn.close()
+                return redirect(url_for('employee_register'))
+
+            # Create new employee
+            try:
+                cursor.execute("""
+                    INSERT INTO Employee (first_name, last_name, email, password_hash, role)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (first_name, last_name, email, generate_password_hash(password), role))
+                conn.commit()
+                flash('Registration successful! Please login.')
+                return redirect(url_for('employee_home'))
+            except Error as e:
+                flash(f'An error occurred: {str(e)}')
+            finally:
+                cursor.close()
+                conn.close()
+        else:
+            flash('Database connection error')
+        
+        return redirect(url_for('employee_register'))
+
+    # GET request - show registration form
+    return render_template('employee_register.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

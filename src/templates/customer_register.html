@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Customer Login</title>
+    <title>Customer Registration</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -71,32 +71,31 @@
         <img src="https://www.logodesign.org/wp-content/uploads/2023/08/current-target-logo.png" alt="Target Logo">
     </header>
     <main>
-        <h1>Customer Login</h1>
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for message in messages %}
-                    <div style="background-color: #ffebee; color: #c62828; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #ef9a9a;">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        <form method="POST" action="{{ url_for('customer_login') }}">
+        <h1>Customer Registration</h1>
+        <form method="POST" action="{{ url_for('customer_register') }}">
+            <label>First Name:<br>
+                <input type="text" name="first_name" required>
+            </label>
+            <label>Last Name:<br>
+                <input type="text" name="last_name" required>
+            </label>
             <label>Email:<br>
                 <input type="email" name="email" required>
             </label>
             <label>Password:<br>
                 <input type="password" name="password" required>
             </label>
-            <button type="submit">Sign In</button>
+            <label>Confirm Password:<br>
+                <input type="password" name="confirm_password" required>
+            </label>
+            <button type="submit">Register</button>
         </form>
         <div class="button-group">
-            <a href="{{ url_for('customer_register') }}">Create New Account</a>
-            <a href="/">Back to Home</a>
+            <a href="{{ url_for('customer_home') }}">Back to Login</a>
         </div>
     </main>
     <footer>
         &copy; 2024 Target Store Management
     </footer>
 </body>
-</html>
+</html> 

@@ -44,6 +44,21 @@
         a {
             color: #333;
         }
+        .button-group {
+            margin-top: 20px;
+        }
+        .button-group a {
+            display: inline-block;
+            padding: 10px 20px;
+            text-decoration: none;
+            background-color: #6c757d;
+            color: white;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .button-group a:hover {
+            background-color: #5a6268;
+        }
     </style>
 </head>
 <body>
@@ -52,6 +67,15 @@
     </header>
     <main>
         <h1>Employee Login</h1>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div style="background-color: #ffebee; color: #c62828; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #ef9a9a;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         <form action="/employee_login" method="POST">
             <label>Email:<br>
                 <input type="email" name="email" required>
@@ -61,7 +85,10 @@
             </label>
             <button type="submit">Sign In</button>
         </form>
-        <p><a href="/">Back to Home</a></p>
+        <div class="button-group">
+            <a href="{{ url_for('employee_register') }}">Create New Account</a>
+            <a href="/">Back to Home</a>
+        </div>
     </main>
     <footer>
         &copy; 2024 Target Store Management
