@@ -18,7 +18,6 @@ DB_CONFIG = {
     'password': 'cpsc408!',
     'database': 'target_store',
     'auth_plugin': 'mysql_native_password'
-
 }
 
 # Add this near the top of your file with other configurations
