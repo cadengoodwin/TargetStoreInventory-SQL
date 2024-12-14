@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Edit Product</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0; 
+            padding: 0;
+            background: #f9f9f9;
+        }
+        header {
+            background: #fff;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        header img {
+            max-width: 150px;
+        }
+        main {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+        }
+        a {
+            color: #333;
+        }
+        .form-section {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="https://www.logodesign.org/wp-content/uploads/2023/08/current-target-logo.png" alt="Target Logo">
+    </header>
+    <main>
+        <h1>Edit Product</h1>
+        
+        <!-- Step 1: Select Product -->
+        <!-- This form is used to select which product to edit -->
+        <form action="/edit_product" method="GET">
+            <label>Select a product to edit:
+                <select name="product_id" required>
+                    <option value="">--Choose a product--</option>
+                    {% for p in products %}
+                        <option value="{{ p.product_id }}" {% if selected_product and p.product_id == selected_product.product_id %}selected{% endif %}>{{ p.product_name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit">Select Product</button>
+        </form>
+
+        {% if selected_product %}
+        <!-- Step 2: Once a product is selected, show its details and allow editing -->
+        <div class="form-section">
+            <h2>Editing: {{ selected_product.product_name }}</h2>
+            <form action="/edit_product" method="POST">
+                <input type="hidden" name="product_id" value="{{ selected_product.product_id }}">
+
+                <label>Product Name:
+                    <input type="text" name="product_name" required value="{{ selected_product.product_name }}">
+                </label>
+
+                <label>Description:
+                    <textarea name="description">{{ selected_product.description }}</textarea>
+                </label>
+
+                <label>Price:
+                    <input type="number" step="0.01" name="price" required value="{{ selected_product.price }}">
+                </label>
+
+                <label>Stock Quantity:
+                    <input type="number" name="stock_quantity" required value="{{ selected_product.stock_quantity }}">
+                </label>
+
+                <label>Category:
+                    <select name="category_id">
+                        {% for cat in categories %}
+                            <option value="{{ cat.category_id }}" {% if cat.category_id == selected_product.category_id %}selected{% endif %}>{{ cat.category_name }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <button type="submit">Update Product</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <p><a href="/manage_products">Back to Manage Products</a></p>
+    </main>
+    <footer>
+        &copy; 2024 Target Store Management
+    </footer>
+</body>
+</html>

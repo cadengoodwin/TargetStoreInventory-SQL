@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Products</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0; 
+            padding: 0;
+            background: #f9f9f9;
+        }
+        header {
+            background: #fff;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        header img {
+            max-width: 150px;
+        }
+        main {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        form, table {
+            margin-bottom: 20px;
+        }
+        a {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="https://www.logodesign.org/wp-content/uploads/2023/08/current-target-logo.png" alt="Target Logo">
+    </header>
+    <main>
+        <h1>Available Products</h1>
+        <form action="/products" method="GET">
+            <label>Filter by Category:
+                <select name="category">
+                    <option value="">All</option>
+                    <!-- Flask populates categories -->
+                    {% for cat in categories %}
+                        <option value="{{ cat.category_name }}">{{ cat.category_name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit">Filter</button>
+        </form>
+        <hr>
+        <table border="1" cellpadding="5">
+            <tr>
+                <th>Name</th><th>Price</th><th>Department</th><th>Category</th><th>Action</th>
+            </tr>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.product_name }}</td>
+                <td>${{ product.price }}</td>
+                <td>{{ product.department_name }}</td>
+                <td>{{ product.category_name }}</td>
+                <td><a href="/buy_product?product_id={{ product.product_id }}">Buy Product</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+        <p><a href="/customer_home">Back to Customer Home</a></p>
+    </main>
+    <footer>
+        &copy; 2024 Target Store Management
+    </footer>
+</body>
+</html>

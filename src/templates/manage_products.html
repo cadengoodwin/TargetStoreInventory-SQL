@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manage Products</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0; 
+            padding: 0;
+            background: #f9f9f9;
+        }
+        header {
+            background: #fff;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        header img {
+            max-width: 150px;
+        }
+        main {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        table {
+            margin-top: 20px;
+        }
+        a {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="https://www.logodesign.org/wp-content/uploads/2023/08/current-target-logo.png" alt="Target Logo">
+    </header>
+    <main>
+        <h1>Manage Products</h1>
+        <h2>Add New Product</h2>
+        <form action="/manage_products" method="POST">
+            <label>Name: <input type="text" name="product_name" required></label><br><br>
+            <label>Description: <input type="text" name="description"></label><br><br>
+            <label>Price: <input type="number" step="0.01" name="price" required></label><br><br>
+            <label>Stock Quantity: <input type="number" name="stock_quantity" required></label><br><br>
+            <label>Category:
+                <select name="category_id">
+                    {% for cat in categories %}
+                        <option value="{{ cat.category_id }}">{{ cat.category_name }}</option>
+                    {% endfor %}
+                </select>
+            </label><br><br>
+            <button type="submit">Add Product</button>
+        </form>
+
+        <hr>
+        <h2>Existing Products</h2>
+        <table border="1" cellpadding="5">
+            <tr><th>ID</th><th>Name</th><th>Price</th><th>Stock</th><th>Category</th><th>Action</th></tr>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.product_id }}</td>
+                <td>{{ product.product_name }}</td>
+                <td>${{ product.price }}</td>
+                <td>{{ product.stock_quantity }}</td>
+                <td>{{ product.category_name }}</td>
+                <td>
+                    <a href="/edit_product?product_id={{ product.product_id }}">Edit</a> |
+                    <a href="/delete_product?product_id={{ product.product_id }}">Soft Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <p><a href="/employee_dashboard">Back to Employee Dashboard</a></p>
+    </main>
+    <footer>
+        &copy; 2024 Target Store Management
+    </footer>
+</body>
+</html>
