@@ -15,8 +15,10 @@ app.secret_key = 'your_secret_key_here'  # Required for flash messages
 DB_CONFIG = {
     'host': 'localhost',
     'user': 'root',
-    'password': 'CPSC408!',
-    'database': 'target_store'
+    'password': 'cpsc408!',
+    'database': 'target_store',
+    'auth_plugin': 'mysql_native_password'
+
 }
 
 # Add this near the top of your file with other configurations
@@ -26,7 +28,152 @@ os.makedirs(EXPORT_FOLDER, exist_ok=True)
 
 def get_db_connection():
     try:
+        # First try to connect to MySQL server without specifying the database
+        init_connection = mysql.connector.connect(
+            host=DB_CONFIG['host'],
+            user=DB_CONFIG['user'],
+            password=DB_CONFIG['password'],
+            auth_plugin='mysql_native_password'
+        )
+        
+        cursor = init_connection.cursor()
+        
+        # Create database if it doesn't exist
+        cursor.execute("CREATE DATABASE IF NOT EXISTS target_store")
+        
+        # Close initial connection
+        cursor.close()
+        init_connection.close()
+        
+        # Connect to the target_store database
         connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        
+        # Create tables if they don't exist
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Department (
+                department_id INT AUTO_INCREMENT PRIMARY KEY,
+                department_name VARCHAR(100) NOT NULL
+            )
+        """)
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Category (
+                category_id INT AUTO_INCREMENT PRIMARY KEY,
+                category_name VARCHAR(100) NOT NULL,
+                department_id INT NOT NULL,
+                FOREIGN KEY (department_id) REFERENCES Department(department_id)
+                    ON UPDATE CASCADE ON DELETE RESTRICT
+            )
+        """)
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Product (
+                product_id INT AUTO_INCREMENT PRIMARY KEY,
+                product_name VARCHAR(150) NOT NULL,
+                description TEXT,
+                price DECIMAL(10,2) NOT NULL,
+                stock_quantity INT NOT NULL DEFAULT 0,
+                category_id INT NOT NULL,
+                is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+                FOREIGN KEY (category_id) REFERENCES Category(category_id)
+                    ON UPDATE CASCADE ON DELETE RESTRICT
+            )
+        """)
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Customer (
+                customer_id INT AUTO_INCREMENT PRIMARY KEY,
+                first_name VARCHAR(100) NOT NULL,
+                last_name VARCHAR(100) NOT NULL,
+                email VARCHAR(255) NOT NULL UNIQUE,
+                password_hash VARCHAR(255) NOT NULL
+            )
+        """)
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Employee (
+                employee_id INT AUTO_INCREMENT PRIMARY KEY,
+                first_name VARCHAR(100) NOT NULL,
+                last_name VARCHAR(100) NOT NULL,
+                email VARCHAR(255) NOT NULL UNIQUE,
+                password_hash VARCHAR(255) NOT NULL,
+                role VARCHAR(50) NOT NULL
+            )
+        """)
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Orders (
+                order_id INT AUTO_INCREMENT PRIMARY KEY,
+                customer_id INT NOT NULL,
+                order_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                total_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+                FOREIGN KEY (customer_id) REFERENCES Customer(customer_id)
+                    ON UPDATE CASCADE ON DELETE RESTRICT
+            )
+        """)
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS OrderItems (
+                order_item_id INT AUTO_INCREMENT PRIMARY KEY,
+                order_id INT NOT NULL,
+                product_id INT NOT NULL,
+                quantity INT NOT NULL,
+                unit_price DECIMAL(10,2) NOT NULL,
+                FOREIGN KEY (order_id) REFERENCES Orders(order_id)
+                    ON UPDATE CASCADE ON DELETE RESTRICT,
+                FOREIGN KEY (product_id) REFERENCES Product(product_id)
+                    ON UPDATE CASCADE ON DELETE RESTRICT
+            )
+        """)
+        
+        # Create indexes (wrapped in try-except since they might already exist)
+        try:
+            cursor.execute("CREATE INDEX idx_product_name ON Product(product_name)")
+        except Error:
+            pass  # Index already exists
+            
+        try:
+            cursor.execute("CREATE INDEX idx_category_name ON Category(category_name)")
+        except Error:
+            pass  # Index already exists
+            
+        try:
+            cursor.execute("CREATE INDEX idx_customer_email ON Customer(email)")
+        except Error:
+            pass  # Index already exists
+        
+        # Insert some initial data if tables are empty
+        cursor.execute("SELECT COUNT(*) FROM Department")
+        if cursor.fetchone()[0] == 0:
+            cursor.execute("""
+                INSERT INTO Department (department_name) VALUES 
+                ('Electronics'), 
+                ('Home & Kitchen'), 
+                ('Clothing')
+            """)
+            
+            cursor.execute("""
+                INSERT INTO Category (category_name, department_id) VALUES
+                ('Tablets', 1),
+                ('Laptops', 1),
+                ('Cookware', 2),
+                ('Furniture', 2),
+                ('Men''s Apparel', 3),
+                ('Women''s Apparel', 3)
+            """)
+            
+            cursor.execute("""
+                INSERT INTO Product (product_name, description, price, stock_quantity, category_id) VALUES
+                ('iPad Air', 'Apple tablet with 10.9-inch display', 599.99, 50, 1),
+                ('MacBook Air', 'Apple laptop with M1 chip', 999.99, 30, 2),
+                ('Non-Stick Pan', 'High-quality non-stick pan', 29.99, 100, 3)
+            """)
+        
+        connection.commit()
+        cursor.close()
+        
         return connection
     except Error as e:
         print(f"Error connecting to database: {e}")
